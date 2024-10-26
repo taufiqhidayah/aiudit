@@ -1,9 +1,21 @@
 'use client';
+import { ChipProps } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Typography, Box, Paper, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, TableSortLabel } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
+
+type MarketPrices = {
+  Tokopedia: number;
+  Shopee: number;
+};
+
+type Item = {
+  name: string;
+  price: number;
+  marketPrices: MarketPrices;
+};
 
 // Mock data for project details and marketplace prices
 const mockProjectData = {
@@ -16,11 +28,11 @@ const mockProjectData = {
     { name: 'Semen', price: 5000000, marketPrices: { Tokopedia: 920000, Shopee: 950000 } },
     { name: 'Pasir', price: 800000, marketPrices: { Tokopedia: 820000, Shopee: 830000 } },
     { name: 'Besi', price: 1500000, marketPrices: { Tokopedia: 1480000, Shopee: 1550000 } },
-  ],
+  ] as Item[],
 };
 
 // Function to determine if the price is fair
-const getPriceIndicator = (itemPrice: number, marketPrices: { [key: string]: number }) => {
+const getPriceIndicator = (itemPrice: number, marketPrices: { [key: string]: number }): { label: string; color: ChipProps['color'] } => {
   const averageMarketPrice =
     Object.values(marketPrices).reduce((sum, price) => sum + price, 0) / Object.values(marketPrices).length;
 
@@ -30,10 +42,10 @@ const getPriceIndicator = (itemPrice: number, marketPrices: { [key: string]: num
 };
 
 // Sorting helper
-const sortData = (items, orderBy, order) => {
+const sortData = (items: Item[], orderBy: Extract<keyof Item, 'name' | 'price'>, order: 'asc' | 'desc') => {
   return [...items].sort((a, b) => {
-    const valueA = orderBy === 'price' ? a.price : a[orderBy];
-    const valueB = orderBy === 'price' ? b.price : b[orderBy];
+    const valueA = a[orderBy];
+    const valueB = b[orderBy];
 
     if (valueA < valueB) return order === 'asc' ? -1 : 1;
     if (valueA > valueB) return order === 'asc' ? 1 : -1;
@@ -47,9 +59,9 @@ const ProjectDetail = () => {
   const project = mockProjectData;
 
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [orderBy, setOrderBy] = useState<keyof typeof project.items[0]>('name');
+  const [orderBy, setOrderBy] = useState<Extract<keyof Item, 'name' | 'price'>>('name');
 
-  const handleRequestSort = (property) => {
+  const handleRequestSort = (property: Extract<keyof Item, 'name' | 'price'>) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
